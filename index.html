@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interfaz Web para la API Java</title>
+    <title>Gestión de Proyectos</title>
     <style>
         body {
             background-color: #1e272e;
@@ -91,7 +91,7 @@
             <span id="userRole" style="color: #ecf0f1;"></span>
         </div>
         <img src="https://universidadeuropea.com/resources/media/images/universidad-europea-logo_poc9mEM.2e16d0ba.fill-767x384.png" alt="Logo Universidad Europea">
-        <h1>Interfaz Web para la API Java</h1>
+        <h1>Gestión de Proyectos</h1>
         <div id="loginSection">
             <label for="username">Usuario:</label>
             <input type="text" id="username" placeholder="Ingrese su nombre de usuario">
@@ -100,6 +100,9 @@
             <button onclick="doLogin()">Iniciar sesión</button>
         </div>
         <div id="dataSection" style="display: none;">
+            
+        </div>
+        <div id="comercialView">
             <label for="clientName">Cliente final:</label>
             <input type="text" id="clientName" placeholder="Ingrese el cliente final">
             <label for="technologies">Tecnologías a usar:</label>
@@ -109,10 +112,6 @@
             <label for="estimatedAmount">Importe estimado:</label>
             <input type="text" id="estimatedAmount" placeholder="Ingrese el importe estimado">
             <button onclick="sendData()">Enviar Datos</button>
-        </div>
-        <div id="comercialView">
-            <h2>Vista de Comercial</h2>
-            <p>Contenido para el rol de Comercial.</p>
         </div>
         <div id="ingenieroView">
             <h2>Vista de Ingeniero</h2>
