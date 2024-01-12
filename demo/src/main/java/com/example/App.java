@@ -1,5 +1,7 @@
 package com.example;
 
+import org.json.JSONObject;
+
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -12,8 +14,13 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.stage.Modality;
 
+import java.io.StringReader;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+
+import java.io.StringReader;
 
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -23,7 +30,11 @@ interface LoginHandler {
 }
 
 interface SendDataHandler {
-    void handleSendData(String userRole);
+    void handleSendData(String client, String ingeniero, String date, String estimatedAmount);
+}
+
+interface GetProjectsHandler {
+    void handlerGetProjects(String ingeniero);
 }
 
 abstract class MainWindow {
@@ -34,7 +45,7 @@ class UIUtils {
     public static GridPane createCommonGridPane() {
         GridPane gridPane = new GridPane();
         gridPane.setPadding(new Insets(20));
-        gridPane.setAlignment(Pos.CENTER); 
+        gridPane.setAlignment(Pos.CENTER);
         gridPane.setHgap(10);
         gridPane.setVgap(10);
         return gridPane;
@@ -51,8 +62,8 @@ class UIUtils {
         Image image = new Image(
                 "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/UE_Madrid_Logo_Positive_RGB.png/800px-UE_Madrid_Logo_Positive_RGB.png");
         ImageView imageView = new ImageView(image);
-        imageView.setFitWidth(300); 
-        imageView.setPreserveRatio(true); 
+        imageView.setFitWidth(300);
+        imageView.setPreserveRatio(true);
         stackPane.getChildren().add(imageView);
         return stackPane;
     }
@@ -70,7 +81,7 @@ class LoginWindow extends MainWindow {
         GridPane gridPane = UIUtils.createCommonGridPane();
 
         StackPane logoPane = UIUtils.createLogoPane();
-        gridPane.add(logoPane, 0, 0, 2, 1); 
+        gridPane.add(logoPane, 0, 0, 2, 1);
 
         TextField usernameField = new TextField();
         PasswordField passwordField = new PasswordField();
@@ -103,9 +114,8 @@ class ComercialWindow extends MainWindow {
     public GridPane getPane() {
         GridPane gridPane = UIUtils.createCommonGridPane();
 
-        // Agregar logo
         StackPane logoPane = UIUtils.createLogoPane();
-        gridPane.add(logoPane, 0, 0, 2, 1); 
+        gridPane.add(logoPane, 0, 0, 2, 1);
 
         TextField clientNameField = new TextField();
         TextField ingenieroField = new TextField();
@@ -123,7 +133,17 @@ class ComercialWindow extends MainWindow {
         gridPane.add(estimatedAmountField, 1, 4);
         gridPane.add(sendDataButton, 1, 5);
 
-        sendDataButton.setOnAction(e -> sendDataHandler.handleSendData("Comercial"));
+        sendDataButton.setOnAction(e -> {
+            String clientName = clientNameField.getText();
+            String ingeniero = ingenieroField.getText();
+            String deliveryDate = deliveryDateField.getText();
+            String estimatedAmount = estimatedAmountField.getText();
+            sendDataHandler.handleSendData(clientName, ingeniero, deliveryDate, estimatedAmount);
+            clientNameField.clear();
+            ingenieroField.clear();
+            deliveryDateField.clear();
+            estimatedAmountField.clear();
+        });
 
         return gridPane;
     }
@@ -141,7 +161,7 @@ class IngenieroWindow extends MainWindow {
         GridPane gridPane = UIUtils.createCommonGridPane();
 
         StackPane logoPane = UIUtils.createLogoPane();
-        gridPane.add(logoPane, 0, 0, 2, 1); // Span dos columnas para ocupar todo el ancho
+        gridPane.add(logoPane, 0, 0, 2, 1);
 
         ListView<String> requestsList = new ListView<>();
         loadRequestsFromBackend(requestsList);
@@ -166,8 +186,17 @@ class IngenieroWindow extends MainWindow {
         gridPane.add(estimatedAmountField, 2, 5);
         gridPane.add(sendDataButton, 2, 6);
 
-        sendDataButton.setOnAction(e -> sendDataHandler.handleSendData("Ingeniero"));
-
+        sendDataButton.setOnAction(e -> {
+            String clientName = clientNameField.getText();
+            String ingeniero = ingenieroField.getText();
+            String deliveryDate = deliveryDateField.getText();
+            String estimatedAmount = estimatedAmountField.getText();
+            sendDataHandler.handleSendData(clientName, ingeniero, deliveryDate, estimatedAmount);
+            clientNameField.clear();
+            ingenieroField.clear();
+            deliveryDateField.clear();
+            estimatedAmountField.clear();
+        });
         requestsList.setOnMouseClicked(event -> {
             if (event.getClickCount() == 2) {
                 String selectedRequest = requestsList.getSelectionModel().getSelectedItem();
@@ -187,7 +216,6 @@ class IngenieroWindow extends MainWindow {
         editRequestPane.setHgap(10);
         editRequestPane.setVgap(10);
 
-        // Agregar campos para editar la petición
         TextField editClientNameField = new TextField();
         TextField editIngenieroField = new TextField();
         TextField editDeliveryDateField = new TextField();
@@ -205,9 +233,8 @@ class IngenieroWindow extends MainWindow {
 
         editRequestPane.add(saveButton, 1, 5);
 
-
         saveButton.setOnAction(e -> {
-            
+
             editRequestStage.close();
         });
 
@@ -218,14 +245,19 @@ class IngenieroWindow extends MainWindow {
 
     private void loadRequestsFromBackend(ListView<String> requestsList) {
         
-        requestsList.getItems().addAll("Salas de reuniones Telefónica - Entregado", "Instalaciones Prosegur - Pendiente", "Hyflex Universidad Europea - Ganado");
+        requestsList.getItems().addAll("Salas de reuniones Telefónica - Entregado",
+                "Instalaciones Prosegur - Pendiente", "Hyflex Universidad Europea - Ganado");
     }
+    
 }
 
 public class App extends Application {
     private boolean isLoggedIn = false;
     private String userRole = "";
     private Stage primaryStage;
+    public String projectsData;
+
+
 
     public static void main(String[] args) {
         launch(args);
@@ -236,113 +268,89 @@ public class App extends Application {
         this.primaryStage = primaryStage;
         primaryStage.setTitle("Gestión de Proyectos");
 
-       
-        // Ventana de inicio de sesión
         LoginWindow loginWindow = new LoginWindow(this::handleLogin);
 
         Scene scene = new Scene(loginWindow.getPane(), 400, 300);
         primaryStage.setScene(scene);
 
-        primaryStage.setResizable(false); 
+        primaryStage.setResizable(false);
         primaryStage.show();
     }
 
     private void handleLogin(String username, String password) {
-        // Simula la autenticación con el backend
-        if ("diego".equals(username) && "admin".equals(password)) {
-            isLoggedIn = true;
-            userRole = "ingeniero"; 
+        JSONObject responseJson = sendPostToBackend(username, password);
+        String status = responseJson.getString("status");
 
-            // Envía un POST al backend con la información de usuario y contraseña
-            sendPostToBackend(username, password);
-
-            // Determina la ventana a abrir según el rol
-            if ("comercial".equals(userRole)) {
-                openComercialWindow(username);
-
-            } else if ("ingeniero".equals(userRole)) {
-                openIngenieroWindow(username);
-
-            }
-            primaryStage.close();
-        } else if ("javi".equals(username) && "admin".equals(password)) {
-            isLoggedIn = true;
-            userRole = "comercial"; 
-
-            // Envía un POST al backend con la información de usuario y contraseña
-            sendPostToBackend(username, password);
-
-            // Determina la ventana a abrir según el rol
-            if ("comercial".equals(userRole)) {
-                openComercialWindow(username);
-
-            } else if ("ingeniero".equals(userRole)) {
-                openIngenieroWindow(username);
-
-            }
-            primaryStage.close();
-        } else if ("david".equals(username) && "admin".equals(password)) {
-            isLoggedIn = true;
-            userRole = "ingeniero"; 
-
-            // Envía un POST al backend con la información de usuario y contraseña
-            sendPostToBackend(username, password);
-
-            // Determina la ventana a abrir según el rol
-            if ("comercial".equals(userRole)) {
-                openComercialWindow(username);
-
-            } else if ("ingeniero".equals(userRole)) {
-                openIngenieroWindow(username);
-
-            }
-            primaryStage.close();
-        } else {
+        if (status.equals("ERROR")) {
             showAlert("Inicio de sesión fallido", "Verifica tus credenciales.");
+
+        } else {
+            isLoggedIn = true;
+            userRole = responseJson.getString("rol");
+
+            if ("comercial".equals(userRole)) {
+                openComercialWindow(username);
+
+            } else if ("ingeniero".equals(userRole)) {
+                openIngenieroWindow(username);
+                handlerGetProjects(username);
+
+            }
+            primaryStage.close();
+
         }
     }
 
-    private void sendPostToBackend(String username, String password) {
+    private JSONObject sendPostToBackend(String username, String password) {
+        String responseString = "";
         try {
-            URL url = new URL("http://localhost:8080/login");
+            URL url = new URL("http://localhost:3000/api/v1/login");
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json");
             connection.setDoOutput(true);
 
             String jsonInputString = "{\"username\": \"" + username + "\", \"password\": \"" + password + "\"}";
-
             try (OutputStream os = connection.getOutputStream()) {
                 byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
+                System.err.println(input);
                 os.write(input, 0, input.length);
             }
 
-            int responseCode = connection.getResponseCode();
-            if (responseCode == HttpURLConnection.HTTP_OK) {
-                System.out.println("POST request sent successfully");
-            } else {
-                System.out.println("POST request failed, response code: " + responseCode);
-            }
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"))) {
+                StringBuilder response = new StringBuilder();
+                String responseLine;
+                while ((responseLine = br.readLine()) != null) {
+                    response.append(responseLine.trim());
+                }
+                System.out.println("Respuesta del servidor: " + response.toString());
+                responseString = response.toString();
 
+            }
         } catch (Exception e) {
+
             e.printStackTrace();
+
         }
+        JSONObject jsonResponse = new JSONObject(responseString.toString());
+        return jsonResponse;
     }
 
     private void openComercialWindow(String username) {
         ComercialWindow comercialWindow = new ComercialWindow(this::handleSendData);
-        openWindow(userRole, "Bienvenido " + username, comercialWindow);
+        openWindow(userRole, "Bienvenido " + username, comercialWindow, username);
     }
 
     private void openIngenieroWindow(String username) {
         IngenieroWindow ingenieroWindow = new IngenieroWindow(this::handleSendData);
-        openWindow(userRole, "Bienvenido " + username, ingenieroWindow);
+        openWindow(userRole, "Bienvenido " + username, ingenieroWindow, username);
     }
 
-    private void openWindow(String rol, String title, MainWindow window) {
+    private void openWindow(String rol, String title, MainWindow window, String name) {
         Stage stage = new Stage();
         stage.setTitle(title);
         GridPane gridPane = window.getPane();
-        gridPane.setAlignment(Pos.CENTER); 
+        gridPane.setAlignment(Pos.CENTER);
         stage.setScene(new Scene(gridPane, 600, 400));
         System.out.println(rol);
         if ("ingeniero".equals(rol) || "comercial".equals(rol)) {
@@ -351,7 +359,7 @@ public class App extends Application {
             logoutButton.setOnAction(e -> handleLogout(stage));
             gridPane.add(logoutButton, 2, 0);
         }
-        stage.setResizable(false); 
+        stage.setResizable(false);
         stage.show();
     }
 
@@ -362,12 +370,88 @@ public class App extends Application {
         primaryStage.show();
     }
 
-    private void handleSendData(String userRole) {
+    private void handleSendData(String client, String ingeniero, String date, String estimatedAmount) {
+        String jsonInputString = "{\"cliente\": \"" + client + "\", \"ingeniero\": \"" + ingeniero
+                + "\",\"fechaEntrega\": \"" + date + "\",\"importe\": \"" + estimatedAmount + "\"}";
+        String responseString = "";
+        
         if (isLoggedIn) {
-            showAlert("Datos enviados", "Datos enviados correctamente.");
+            try {
+                URL url = new URL("http://localhost:3000/api/v1/addProject");
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("POST");
+                connection.setRequestProperty("Content-Type", "application/json");
+                connection.setDoOutput(true);
+
+                try (OutputStream os = connection.getOutputStream()) {
+                    byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
+                    System.err.println(input);
+                    os.write(input, 0, input.length);
+                }
+
+                try (BufferedReader br = new BufferedReader(
+                        new InputStreamReader(connection.getInputStream(), "utf-8"))) {
+                    StringBuilder response = new StringBuilder();
+                    String responseLine;
+                    while ((responseLine = br.readLine()) != null) {
+                        response.append(responseLine.trim());
+                    }
+                    System.out.println("Respuesta del servidor: " + response.toString());
+                    responseString = response.toString();
+
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+
+            }
+            JSONObject jsonResponse = new JSONObject(responseString.toString());
+            String status = jsonResponse.getString("status");
+            if (status.equals("OK")) {
+                showAlert("Datos enviados", "Datos enviados correctamente.");
+
+            } else {
+                showAlert("Error al enviar", "Compruebe su conexión a internet y vuelva a intentarlo");
+
+            }
+
         } else {
             showAlert("Acceso denegado", "Debes iniciar sesión antes de enviar datos.");
         }
+    }
+
+    public String handlerGetProjects(String ingeniero) {
+        String responseString = "";
+        try {
+            URL url = new URL("http://localhost:3000/api/v1/getProjects");
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setDoOutput(true);
+
+            String jsonInputString = "{\"ingeniero\": \"" + ingeniero + "\"}";
+            try (OutputStream os = connection.getOutputStream()) {
+                byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
+                System.err.println(input);
+                os.write(input, 0, input.length);
+            }
+
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"))) {
+                StringBuilder response = new StringBuilder();
+                String responseLine;
+                while ((responseLine = br.readLine()) != null) {
+                    response.append(responseLine.trim());
+                }
+                System.out.println("Respuesta del servidor: " + response.toString());
+                return response.toString();
+                
+
+            }
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+        }
+        return ("{}");
     }
 
     private void showAlert(String title, String content) {
