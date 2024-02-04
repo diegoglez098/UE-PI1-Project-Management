@@ -112,6 +112,27 @@ app.post('/api/v1/getProjects', (req, res) => {
         res.json(projectsToIng);
     });
 });
+app.post('/api/v1/getProjectsComercial', (req, res) => {
+    var projectsToCom = {}
+    fs.readFile(projects, 'utf8', (err, data) => {
+        if (err) {
+            console.error('Error al leer el archivo:', err);
+            res.json({ "status": "ERROR" })
+            return;
+        }
+
+        // Parsear el contenido JSON a un array de objetos
+        const localData = JSON.parse(data);
+        for (var i = 0; i < localData.length; i++) {
+
+            if (localData[i].comercial === req.body.comercial) {
+                projectsToCom[i + 1] = (localData[i])
+            }
+        }
+        console.log("Sent comercial requests asociated to " + req.body.comercial)
+        res.json(projectsToCom);
+    });
+});
 
 app.post('/api/v1/updateProject', (req, res) => {
     datos = req.body

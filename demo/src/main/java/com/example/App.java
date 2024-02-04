@@ -33,7 +33,8 @@ interface LoginHandler {
 }
 
 interface SendDataHandler {
-    void handleSendData(String client, String ingeniero, String date, String estimatedAmount, String title);
+    void handleSendData(String client, String ingeniero, String date, String estimatedAmount, String title,
+            String comercial);
 }
 
 interface GetProjectsHandler {
@@ -107,18 +108,31 @@ class LoginWindow extends MainWindow {
 }
 
 class ComercialWindow extends MainWindow {
+    private GetProjectsHandler getProjectsHandler;
     private SendDataHandler sendDataHandler;
+    private String comercial;
+    private String response;
 
-    public ComercialWindow(SendDataHandler sendDataHandler) {
+    public ComercialWindow(SendDataHandler sendDataHandler, String comercial) {
         this.sendDataHandler = sendDataHandler;
+        this.comercial = comercial;
+        this.response = "";
+
     }
 
     @Override
     public GridPane getPane() {
+
         GridPane gridPane = UIUtils.createCommonGridPane();
 
         StackPane logoPane = UIUtils.createLogoPane();
         gridPane.add(logoPane, 0, 0, 2, 1);
+
+        ListView<String> projectsList = new ListView<>();
+        loadProjectsFromBackend(projectsList);
+
+        gridPane.add(new Label("Proyectos Solicitados:"), 0, 1);
+        gridPane.add(projectsList, 0, 2, 2, 4);
 
         TextField clientNameField = new TextField();
         TextField ingenieroField = new TextField();
@@ -127,17 +141,18 @@ class ComercialWindow extends MainWindow {
         TextField estimatedAmountField = new TextField();
         Button sendDataButton = UIUtils.createStyledButton("Enviar Datos");
 
-        gridPane.add(new Label("Nombre del Proyecto:"), 0, 1);
-        gridPane.add(titleField, 1, 1);
-        gridPane.add(new Label("Cliente final:"), 0, 2);
-        gridPane.add(clientNameField, 1, 2);
-        gridPane.add(new Label("Ingeniero:"), 0, 3);
-        gridPane.add(ingenieroField, 1, 3);
-        gridPane.add(new Label("Fecha de entrega:"), 0, 4);
-        gridPane.add(deliveryDateField, 1, 4);
-        gridPane.add(new Label("Importe estimado:"), 0, 5);
-        gridPane.add(estimatedAmountField, 1, 5);
-        gridPane.add(sendDataButton, 1, 6);
+        gridPane.add(new Label("Nuevo proyecto"), 2, 1);
+        gridPane.add(new Label("Nombre del Proyecto:"), 2, 2);
+        gridPane.add(titleField, 3, 2);
+        gridPane.add(new Label("Cliente final:"), 2, 3);
+        gridPane.add(clientNameField, 3, 3);
+        gridPane.add(new Label("Ingeniero:"), 2, 4);
+        gridPane.add(ingenieroField, 3, 4);
+        gridPane.add(new Label("Fecha de entrega:"), 2, 5);
+        gridPane.add(deliveryDateField, 3, 5);
+        gridPane.add(new Label("Importe estimado:"), 2, 6);
+        gridPane.add(estimatedAmountField, 3, 6);
+        gridPane.add(sendDataButton, 3, 7);
 
         sendDataButton.setOnAction(e -> {
             String clientName = clientNameField.getText();
@@ -145,14 +160,111 @@ class ComercialWindow extends MainWindow {
             String ingeniero = ingenieroField.getText();
             String deliveryDate = deliveryDateField.getText();
             String estimatedAmount = estimatedAmountField.getText();
-            sendDataHandler.handleSendData(clientName, ingeniero, deliveryDate, estimatedAmount, title);
+            sendDataHandler.handleSendData(clientName, ingeniero, deliveryDate, estimatedAmount, title, comercial);
             clientNameField.clear();
             ingenieroField.clear();
             deliveryDateField.clear();
             estimatedAmountField.clear();
         });
+        projectsList.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 1) {
+                String selectedProject = projectsList.getSelectionModel().getSelectedItem();
+                displayProjectInfo(selectedProject);
+            }
+        });
 
         return gridPane;
+    }
+
+    public void loadProjectsFromBackend(ListView<String> projectsList) {
+        response = handlerGetProjects(comercial);
+
+        JSONObject jsonObject = new JSONObject(response);
+
+        List<String> projects = new ArrayList<>();
+
+        for (int i = 1; i < 99; i++) {
+            try {
+                JSONObject value = new JSONObject();
+                value = jsonObject.getJSONObject(String.valueOf(i));
+                var id = value.getInt("id");
+                projects.add(String.valueOf(id) + " : " + value.getString("nombre") + " - "
+                        + value.getString("cliente"));
+
+            } catch (Exception e) {
+            }
+        }
+        for (String elemento : projects) {
+            projectsList.getItems().add(elemento);
+        }
+    }
+
+    public String handlerGetProjects(String comercial) {
+
+        try {
+            URL url = new URL("http://localhost:3000/api/v1/getProjectsComercial");
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setDoOutput(true);
+
+            String jsonInputString = "{\"comercial\": \"" + comercial + "\"}";
+            try (OutputStream os = connection.getOutputStream()) {
+                byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
+                System.err.println(input);
+                os.write(input, 0, input.length);
+            }
+
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"))) {
+                StringBuilder response = new StringBuilder();
+                String responseLine;
+                while ((responseLine = br.readLine()) != null) {
+                    response.append(responseLine.trim());
+                }
+                return response.toString();
+
+            }
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+        }
+        return "";
+    }
+
+    private void displayProjectInfo(String selectedProject) {
+        Alert projectInfoAlert = new Alert(Alert.AlertType.INFORMATION);
+        JSONObject jsonObject = new JSONObject(response);
+        JSONObject selected = new JSONObject();
+        JSONObject actual = new JSONObject();
+
+        int end = selectedProject.indexOf(':');
+
+        String id = selectedProject.substring(0, end - 1);
+
+        for (int w = 0; w < 999999; w++) {
+            try {
+                actual = jsonObject.getJSONObject(String.valueOf(w));
+                Integer actualid = actual.getInt("id");
+                if (String.valueOf(actualid).equalsIgnoreCase(id)) {
+                    selected = actual;
+                    break;
+                }
+            } catch (Exception e) {
+                System.out.println(e);
+
+            }
+
+        }
+        projectInfoAlert.setTitle(selectedProject);
+        projectInfoAlert.setHeaderText(null);
+        projectInfoAlert.setContentText(
+                "Nombre del Proyecto: " + selected.getString("nombre") + "\nCliente Final: "
+                        + selected.getString("cliente") + "\nIngeniero: " + selected.getString("ingeniero")
+                        + "\nFecha de Entrega: " + selected.getString("fechaEntrega") + "\nImporte: "
+                        + selected.getString("importe")+ "\nEstado: " + selected.getString("estado"));
+
+        projectInfoAlert.showAndWait();
     }
 }
 
@@ -182,6 +294,7 @@ class IngenieroWindow extends MainWindow {
         TextField clientNameField = new TextField();
         TextField titleNameField = new TextField();
         TextField ingenieroField = new TextField();
+        TextField comerciaField = new TextField();
         TextField deliveryDateField = new TextField();
         TextField estimatedAmountField = new TextField();
         Button sendDataButton = UIUtils.createStyledButton("Enviar Datos");
@@ -197,7 +310,9 @@ class IngenieroWindow extends MainWindow {
         gridPane.add(deliveryDateField, 2, 5);
         gridPane.add(new Label("Importe estimado:"), 1, 6);
         gridPane.add(estimatedAmountField, 2, 6);
-        gridPane.add(sendDataButton, 2, 7);
+        gridPane.add(new Label("Comercial:"), 1, 7);
+        gridPane.add(comerciaField, 2, 7);
+        gridPane.add(sendDataButton, 2, 8);
 
         sendDataButton.setOnAction(e -> {
             String clientName = clientNameField.getText();
@@ -205,8 +320,9 @@ class IngenieroWindow extends MainWindow {
             String deliveryDate = deliveryDateField.getText();
             String estimatedAmount = estimatedAmountField.getText();
             String nombre = titleNameField.getText();
+            String comercial = comerciaField.getText();
 
-            sendDataHandler.handleSendData(clientName, ingeniero, deliveryDate, estimatedAmount, clientName);
+            sendDataHandler.handleSendData(clientName, ingeniero, deliveryDate, estimatedAmount, clientName, comercial);
             clientNameField.clear();
             ingenieroField.clear();
             deliveryDateField.clear();
@@ -266,7 +382,7 @@ class IngenieroWindow extends MainWindow {
     }
 
     private void loadRequestsFromBackend(ListView<String> requestsList) {
-     
+
         List<String> response = handlerGetProjects(ingeniero);
 
         for (String elemento : response) {
@@ -466,7 +582,7 @@ public class App extends Application {
     }
 
     private void openComercialWindow(String username) {
-        ComercialWindow comercialWindow = new ComercialWindow(this::handleSendData);
+        ComercialWindow comercialWindow = new ComercialWindow(this::handleSendData, username);
         openWindow(userRole, "Bienvenido " + username, comercialWindow, username);
     }
 
@@ -499,9 +615,11 @@ public class App extends Application {
         primaryStage.show();
     }
 
-    private void handleSendData(String client, String ingeniero, String date, String estimatedAmount, String title) {
+    private void handleSendData(String client, String ingeniero, String date, String estimatedAmount, String title,
+            String comercial) {
         String jsonInputString = "{\"cliente\": \"" + client + "\", \"ingeniero\": \"" + ingeniero
-                + "\",\"fechaEntrega\": \"" + date + "\",\"nombre\": \"" + title + "\",\"importe\": \""
+                + "\",\"fechaEntrega\": \"" + date + "\",\"nombre\": \"" + title + "\",\"comercial\": \"" + comercial
+                + "\",\"importe\": \""
                 + estimatedAmount + "\"}";
         String responseString = "";
         System.err.println(jsonInputString);
