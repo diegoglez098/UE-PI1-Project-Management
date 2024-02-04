@@ -81,8 +81,8 @@ Iniciar el servidor en /backend
 <!-- ROADMAP -->
 ## Roadmap
 
-- [ ] Integración de la GUI con el Backend generado en Node
-- [ ] Implementación de archivos JSON como base de datos permanente
+- [+] Integración de la GUI con el Backend generado en Node
+- [+] Implementación de archivos JSON como base de datos permanente
 - [ ] Añadir el registro de usuarios
 - [ ] Añadir el rol superadministrador
 - [ ] Migración a MongoDB
