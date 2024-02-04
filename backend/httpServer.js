@@ -105,7 +105,9 @@ app.post('/api/v1/getProjects', (req, res) => {
         for (var i = 0; i < localData.length; i++) {
 
             if (localData[i].ingeniero === req.body.ingeniero) {
-                projectsToIng[i + 1] = (localData[i])
+                if (localData[i].estado == "Pendiente"){
+                    projectsToIng[i + 1] = (localData[i])
+                }
             }
         }
         console.log("Sent projects asociated to " + req.body.ingeniero)
@@ -126,7 +128,10 @@ app.post('/api/v1/getProjectsComercial', (req, res) => {
         for (var i = 0; i < localData.length; i++) {
 
             if (localData[i].comercial === req.body.comercial) {
-                projectsToCom[i + 1] = (localData[i])
+                if (localData[i].estado == "Entregado" || localData[i].estado == "Desestimado"){
+                    projectsToCom[i + 1] = (localData[i])
+
+                }
             }
         }
         console.log("Sent comercial requests asociated to " + req.body.comercial)
@@ -144,17 +149,20 @@ app.post('/api/v1/updateProject', (req, res) => {
         }
         // Parsear el contenido JSON a un array de objetos
         const localData = JSON.parse(data);
-        console.log(req.body)
+        
+        var identifier = parseInt(req.body.id)
+        var editProject = {}
         var indice = 0
-        for (var i = 0; i++; i < localData.length()) {
+        for (var i = 0; i <= localData.length;i++) {
             if (localData[i].id == req.body.id) {
-                indice = i
+                editProject = localData[i]
+                break
             }
         }
-        editProject = localData[indice]
+        console.log(editProject)
 
         Object.keys(datos).forEach(clave => {
-            if (datos[clave] != "") {
+            if (datos[clave] != "" && clave != "id" && datos[clave] !="null") {
                 console.log(clave)
                 editProject[clave] = datos[clave]
             }

@@ -1,59 +1,12 @@
 [
   {
-    "cliente": "Prosegur",
-    "ingeniero": "diego",
-    "fechaEntrega": "15/6/2024",
-    "importe": "2435272,34€",
-    "nombre": "TEST",
-    "id": 0,
-    "estado": "Pendiente",
-    "clave": "Prosegur"
-  },
-  {
-    "cliente": "UE",
-    "ingeniero": "diego",
-    "fechaEntrega": "16/7/2024",
-    "nombre": "Proyecto Hyflex",
-    "importe": "23402,01",
-    "estado": "Pendiente",
-    "id": 1
-  },
-  {
-    "cliente": "Plenilunio",
-    "ingeniero": "diego",
-    "fechaEntrega": "25/09/2024",
-    "nombre": "Pantalla LED",
-    "importe": "234242,34",
-    "estado": "Pendiente",
-    "id": 2
-  },
-  {
     "cliente": "Telefónica",
-    "ingeniero": "david",
-    "fechaEntrega": "--",
-    "nombre": "Prueba",
-    "importe": "--",
-    "estado": "Pendiente",
-    "id": 3
-  },
-  {
-    "cliente": "Ayto. de madrid",
     "ingeniero": "diego",
-    "fechaEntrega": "none",
-    "nombre": "Salón de actos",
+    "fechaEntrega": "2024-02-21",
+    "nombre": "TEST",
     "comercial": "javier",
-    "importe": "none",
-    "estado": "Pendiente",
-    "id": 4
-  },
-  {
-    "cliente": "Ayto. de Murcia",
-    "ingeniero": "diego",
-    "fechaEntrega": "none",
-    "nombre": "Dotación de pantallas interactivas",
-    "comercial": "javier",
-    "importe": "none",
-    "estado": "Pendiente",
-    "id": 5
+    "importe": "58748,45€",
+    "estado": "Entregado",
+    "id": 0
   }
 ]

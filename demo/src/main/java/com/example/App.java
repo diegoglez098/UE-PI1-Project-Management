@@ -13,6 +13,8 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.stage.Modality;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
 
 import java.io.StringReader;
 import java.io.BufferedReader;
@@ -24,6 +26,7 @@ import java.io.StringReader;
 
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -140,6 +143,8 @@ class ComercialWindow extends MainWindow {
         TextField deliveryDateField = new TextField();
         TextField estimatedAmountField = new TextField();
         Button sendDataButton = UIUtils.createStyledButton("Enviar Datos");
+        DatePicker fechaEntregaPicker = new DatePicker();
+        fechaEntregaPicker.setPromptText("Seleccionar Fecha de Entrega");
 
         gridPane.add(new Label("Nuevo proyecto"), 2, 1);
         gridPane.add(new Label("Nombre del Proyecto:"), 2, 2);
@@ -148,8 +153,8 @@ class ComercialWindow extends MainWindow {
         gridPane.add(clientNameField, 3, 3);
         gridPane.add(new Label("Ingeniero:"), 2, 4);
         gridPane.add(ingenieroField, 3, 4);
-        gridPane.add(new Label("Fecha de entrega:"), 2, 5);
-        gridPane.add(deliveryDateField, 3, 5);
+        gridPane.add(new Label("Fecha de Entrega:"), 2, 5);
+        gridPane.add(fechaEntregaPicker, 3, 5);
         gridPane.add(new Label("Importe estimado:"), 2, 6);
         gridPane.add(estimatedAmountField, 3, 6);
         gridPane.add(sendDataButton, 3, 7);
@@ -158,13 +163,14 @@ class ComercialWindow extends MainWindow {
             String clientName = clientNameField.getText();
             String title = titleField.getText();
             String ingeniero = ingenieroField.getText();
-            String deliveryDate = deliveryDateField.getText();
+            String deliveryDate = fechaEntregaPicker.getValue().toString();
             String estimatedAmount = estimatedAmountField.getText();
             sendDataHandler.handleSendData(clientName, ingeniero, deliveryDate, estimatedAmount, title, comercial);
             clientNameField.clear();
             ingenieroField.clear();
             deliveryDateField.clear();
             estimatedAmountField.clear();
+            titleField.clear();
         });
         projectsList.setOnMouseClicked(event -> {
             if (event.getClickCount() == 1) {
@@ -211,7 +217,6 @@ class ComercialWindow extends MainWindow {
             String jsonInputString = "{\"comercial\": \"" + comercial + "\"}";
             try (OutputStream os = connection.getOutputStream()) {
                 byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
-                System.err.println(input);
                 os.write(input, 0, input.length);
             }
 
@@ -251,7 +256,6 @@ class ComercialWindow extends MainWindow {
                     break;
                 }
             } catch (Exception e) {
-                System.out.println(e);
 
             }
 
@@ -262,7 +266,7 @@ class ComercialWindow extends MainWindow {
                 "Nombre del Proyecto: " + selected.getString("nombre") + "\nCliente Final: "
                         + selected.getString("cliente") + "\nIngeniero: " + selected.getString("ingeniero")
                         + "\nFecha de Entrega: " + selected.getString("fechaEntrega") + "\nImporte: "
-                        + selected.getString("importe")+ "\nEstado: " + selected.getString("estado"));
+                        + selected.getString("importe") + "\nEstado: " + selected.getString("estado"));
 
         projectInfoAlert.showAndWait();
     }
@@ -295,7 +299,8 @@ class IngenieroWindow extends MainWindow {
         TextField titleNameField = new TextField();
         TextField ingenieroField = new TextField();
         TextField comerciaField = new TextField();
-        TextField deliveryDateField = new TextField();
+        DatePicker fechaEntregaPicker = new DatePicker();
+        fechaEntregaPicker.setPromptText("Seleccionar Fecha de Entrega");
         TextField estimatedAmountField = new TextField();
         Button sendDataButton = UIUtils.createStyledButton("Enviar Datos");
 
@@ -306,8 +311,8 @@ class IngenieroWindow extends MainWindow {
         gridPane.add(clientNameField, 2, 3);
         gridPane.add(new Label("Ingeniero:"), 1, 4);
         gridPane.add(ingenieroField, 2, 4);
-        gridPane.add(new Label("Fecha de entrega:"), 1, 5);
-        gridPane.add(deliveryDateField, 2, 5);
+        gridPane.add(new Label("Fecha de Entrega:"), 1, 5);
+        gridPane.add(fechaEntregaPicker, 2, 5);
         gridPane.add(new Label("Importe estimado:"), 1, 6);
         gridPane.add(estimatedAmountField, 2, 6);
         gridPane.add(new Label("Comercial:"), 1, 7);
@@ -317,7 +322,7 @@ class IngenieroWindow extends MainWindow {
         sendDataButton.setOnAction(e -> {
             String clientName = clientNameField.getText();
             String ingeniero = ingenieroField.getText();
-            String deliveryDate = deliveryDateField.getText();
+            String deliveryDate = fechaEntregaPicker.getValue().toString();
             String estimatedAmount = estimatedAmountField.getText();
             String nombre = titleNameField.getText();
             String comercial = comerciaField.getText();
@@ -325,7 +330,6 @@ class IngenieroWindow extends MainWindow {
             sendDataHandler.handleSendData(clientName, ingeniero, deliveryDate, estimatedAmount, clientName, comercial);
             clientNameField.clear();
             ingenieroField.clear();
-            deliveryDateField.clear();
             estimatedAmountField.clear();
         });
         requestsList.setOnMouseClicked(event -> {
@@ -344,7 +348,7 @@ class IngenieroWindow extends MainWindow {
 
         Stage editRequestStage = new Stage();
         editRequestStage.initModality(Modality.APPLICATION_MODAL);
-        editRequestStage.setTitle("Editar Petición");
+        editRequestStage.setTitle(selectedRequest);
 
         GridPane editRequestPane = UIUtils.createCommonGridPane();
         editRequestPane.setHgap(10);
@@ -353,8 +357,13 @@ class IngenieroWindow extends MainWindow {
         TextField editClientNameField = new TextField();
         TextField editTitleField = new TextField();
         TextField editIngenieroField = new TextField();
-        TextField editDeliveryDateField = new TextField();
+        DatePicker editDeliveryDateField = new DatePicker();
+        editDeliveryDateField.setPromptText("Seleccionar Fecha de Entrega");
         TextField editEstimatedAmountField = new TextField();
+        ComboBox<String> estadoProyectoComboBox = new ComboBox<>();
+        estadoProyectoComboBox.getItems().addAll("Pentiente", "Entregado", "Desestimado");
+        estadoProyectoComboBox.setPromptText("Seleccionar Estado");
+
         Button saveButton = UIUtils.createStyledButton("Guardar Cambios");
 
         editRequestPane.add(new Label("Nombre del proyecto:"), 0, 1);
@@ -367,16 +376,19 @@ class IngenieroWindow extends MainWindow {
         editRequestPane.add(editDeliveryDateField, 1, 4);
         editRequestPane.add(new Label("Importe final:"), 0, 5);
         editRequestPane.add(editEstimatedAmountField, 1, 5);
+        editRequestPane.add(new Label("Estado del Proyecto:"), 0, 6);
+        editRequestPane.add(estadoProyectoComboBox, 1, 6);
 
-        editRequestPane.add(saveButton, 1, 6);
+        editRequestPane.add(saveButton, 1, 7);
 
         saveButton.setOnAction(e -> {
-            updateData(editClientNameField.getText(), editIngenieroField.getText(), editDeliveryDateField.getText(),
-                    editEstimatedAmountField.getText(), editTitleField.getText());
+            updateData(editClientNameField.getText(), editIngenieroField.getText(), editDeliveryDateField.getValue().toString(),
+                    editEstimatedAmountField.getText(), editTitleField.getText(), estadoProyectoComboBox.getValue(),
+                    id);
             editRequestStage.close();
         });
 
-        Scene editRequestScene = new Scene(editRequestPane, 400, 300);
+        Scene editRequestScene = new Scene(editRequestPane, 500, 300);
         editRequestStage.setScene(editRequestScene);
         editRequestStage.show();
     }
@@ -394,18 +406,19 @@ class IngenieroWindow extends MainWindow {
 
         int end = selected.indexOf(':');
 
-        String id = selected.substring(0, end);
+        String id = selected.substring(0, end - 1);
 
         return id;
 
     }
 
-    private void updateData(String client, String ingeniero, String date, String estimatedAmount, String title) {
+    private void updateData(String client, String ingeniero, String date, String estimatedAmount, String title,
+            String estado, String id) {
         String jsonInputString = "{\"cliente\": \"" + client + "\", \"ingeniero\": \"" + ingeniero
-                + "\",\"fechaEntrega\": \"" + date + "\",\"nombre\": \"" + title + "\",\"importe\": \""
+                + "\",\"fechaEntrega\": \"" + date + "\",\"nombre\": \"" + title + "\",\"id\": \""
+                + Integer.parseInt(id) + "\",\"estado\": \"" + estado + "\",\"importe\": \""
                 + estimatedAmount + "\"}";
         String responseString = "";
-        System.out.println(jsonInputString);
 
         try {
             URL url = new URL("http://localhost:3000/api/v1/updateProject");
@@ -416,7 +429,6 @@ class IngenieroWindow extends MainWindow {
 
             try (OutputStream os = connection.getOutputStream()) {
                 byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
-                System.err.println(input);
                 os.write(input, 0, input.length);
             }
 
@@ -461,7 +473,6 @@ class IngenieroWindow extends MainWindow {
             String jsonInputString = "{\"ingeniero\": \"" + ingeniero + "\"}";
             try (OutputStream os = connection.getOutputStream()) {
                 byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
-                System.err.println(input);
                 os.write(input, 0, input.length);
             }
 
@@ -471,7 +482,6 @@ class IngenieroWindow extends MainWindow {
                 while ((responseLine = br.readLine()) != null) {
                     response.append(responseLine.trim());
                 }
-                System.out.println("Proyectos asociados: " + response.toString());
                 JSONObject jsonObject = new JSONObject(response.toString());
 
                 // Imprimir los 12 primeros proyectos
@@ -558,7 +568,6 @@ public class App extends Application {
             String jsonInputString = "{\"username\": \"" + username + "\", \"password\": \"" + password + "\"}";
             try (OutputStream os = connection.getOutputStream()) {
                 byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
-                System.err.println(input);
                 os.write(input, 0, input.length);
             }
 
@@ -597,12 +606,16 @@ public class App extends Application {
         GridPane gridPane = window.getPane();
         gridPane.setAlignment(Pos.CENTER);
         stage.setScene(new Scene(gridPane, 600, 400));
-        System.out.println(rol);
         if ("ingeniero".equals(rol) || "comercial".equals(rol)) {
             Button logoutButton = UIUtils.createStyledButton("Cerrar Sesión");
 
             logoutButton.setOnAction(e -> handleLogout(stage));
-            gridPane.add(logoutButton, 2, 0);
+            if ("ingeniero".equals(rol)) {
+                gridPane.add(logoutButton, 2, 0);
+
+            } else {
+                gridPane.add(logoutButton, 3, 0);
+            }
         }
         stage.setResizable(false);
         stage.show();
@@ -622,7 +635,6 @@ public class App extends Application {
                 + "\",\"importe\": \""
                 + estimatedAmount + "\"}";
         String responseString = "";
-        System.err.println(jsonInputString);
 
         if (isLoggedIn) {
             try {
@@ -634,7 +646,6 @@ public class App extends Application {
 
                 try (OutputStream os = connection.getOutputStream()) {
                     byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
-                    System.err.println(input);
                     os.write(input, 0, input.length);
                 }
 
