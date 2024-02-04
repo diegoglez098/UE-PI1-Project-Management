@@ -15,7 +15,7 @@ function readProject() {
     fs.readFile(projects, 'utf8', (err, data) => {
         if (err) {
             console.error('Error al leer el archivo:', err);
-            
+
             return;
         }
 
@@ -64,7 +64,7 @@ app.post('/api/v1/addProject', (req, res) => {
     fs.readFile(projects, 'utf8', (err, data) => {
         if (err) {
             console.error('Error al leer el archivo:', err);
-            
+
             return;
         }
 
@@ -72,11 +72,11 @@ app.post('/api/v1/addProject', (req, res) => {
         const localData = JSON.parse(data);
         req.body.estado = "Pendiente"
         req.body.id = localData.length
-        
+
         localData.push(req.body)
-    
+
         const updatedJson = JSON.stringify(localData, null, 2);
-    
+
         fs.writeFile(projects, updatedJson, 'utf8', (err) => {
             if (err) {
                 console.error('Error al escribir en el archivo:', err);
@@ -87,12 +87,12 @@ app.post('/api/v1/addProject', (req, res) => {
             console.log('Nuevo objeto agregado correctamente al archivo.');
         });
     });
-   
+
 
 });
 // Endpoint de prueba con método POST
 app.post('/api/v1/getProjects', (req, res) => {
-    var projectsToIng = []
+    var projectsToIng = {}
     fs.readFile(projects, 'utf8', (err, data) => {
         if (err) {
             console.error('Error al leer el archivo:', err);
@@ -102,17 +102,58 @@ app.post('/api/v1/getProjects', (req, res) => {
 
         // Parsear el contenido JSON a un array de objetos
         const localData = JSON.parse(data);
-        for (var i=0;i<localData.length;i++){
-            if (localData[i].ingeniero === req.body.ingeniero){
-                projectsToIng.push(localData[i])
+        for (var i = 0; i < localData.length; i++) {
+
+            if (localData[i].ingeniero === req.body.ingeniero) {
+                projectsToIng[i + 1] = (localData[i])
             }
         }
-        console.log("Sent projects asociated to "+req.body.ingeniero)
-        res.send(projectsToIng);
+        console.log("Sent projects asociated to " + req.body.ingeniero)
+        res.json(projectsToIng);
     });
 });
 
+app.post('/api/v1/updateProject', (req, res) => {
+    datos = req.body
+    fs.readFile(projects, 'utf8', (err, data) => {
+        if (err) {
+            console.error('Error al leer el archivo:', err);
 
+            return;
+        }
+        // Parsear el contenido JSON a un array de objetos
+        const localData = JSON.parse(data);
+        console.log(req.body)
+        var indice = 0
+        for (var i = 0; i++; i < localData.length()) {
+            if (localData[i].id == req.body.id) {
+                indice = i
+            }
+        }
+        editProject = localData[indice]
+
+        Object.keys(datos).forEach(clave => {
+            if (datos[clave] != "") {
+                console.log(clave)
+                editProject[clave] = datos[clave]
+            }
+        });
+
+        const updatedJson = JSON.stringify(localData, null, 2);
+
+        fs.writeFile(projects, updatedJson, 'utf8', (err) => {
+            if (err) {
+                console.error('Error al escribir en el archivo:', err);
+                res.json({ "status": "ERROR" })
+                return;
+            }
+            res.json({ "status": "OK" })
+            console.log('Proyecto editado correctamente');
+        });
+    });
+
+
+});
 
 // Iniciar el servidor
 app.listen(port, () => {

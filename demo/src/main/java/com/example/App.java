@@ -24,13 +24,16 @@ import java.io.StringReader;
 
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 interface LoginHandler {
     void handleLogin(String username, String password);
 }
 
 interface SendDataHandler {
-    void handleSendData(String client, String ingeniero, String date, String estimatedAmount);
+    void handleSendData(String client, String ingeniero, String date, String estimatedAmount, String title);
 }
 
 interface GetProjectsHandler {
@@ -119,26 +122,30 @@ class ComercialWindow extends MainWindow {
 
         TextField clientNameField = new TextField();
         TextField ingenieroField = new TextField();
+        TextField titleField = new TextField();
         TextField deliveryDateField = new TextField();
         TextField estimatedAmountField = new TextField();
         Button sendDataButton = UIUtils.createStyledButton("Enviar Datos");
 
-        gridPane.add(new Label("Cliente final:"), 0, 1);
-        gridPane.add(clientNameField, 1, 1);
-        gridPane.add(new Label("Ingeniero:"), 0, 2);
-        gridPane.add(ingenieroField, 1, 2);
-        gridPane.add(new Label("Fecha de entrega:"), 0, 3);
-        gridPane.add(deliveryDateField, 1, 3);
-        gridPane.add(new Label("Importe estimado:"), 0, 4);
-        gridPane.add(estimatedAmountField, 1, 4);
-        gridPane.add(sendDataButton, 1, 5);
+        gridPane.add(new Label("Nombre del Proyecto:"), 0, 1);
+        gridPane.add(titleField, 1, 1);
+        gridPane.add(new Label("Cliente final:"), 0, 2);
+        gridPane.add(clientNameField, 1, 2);
+        gridPane.add(new Label("Ingeniero:"), 0, 3);
+        gridPane.add(ingenieroField, 1, 3);
+        gridPane.add(new Label("Fecha de entrega:"), 0, 4);
+        gridPane.add(deliveryDateField, 1, 4);
+        gridPane.add(new Label("Importe estimado:"), 0, 5);
+        gridPane.add(estimatedAmountField, 1, 5);
+        gridPane.add(sendDataButton, 1, 6);
 
         sendDataButton.setOnAction(e -> {
             String clientName = clientNameField.getText();
+            String title = titleField.getText();
             String ingeniero = ingenieroField.getText();
             String deliveryDate = deliveryDateField.getText();
             String estimatedAmount = estimatedAmountField.getText();
-            sendDataHandler.handleSendData(clientName, ingeniero, deliveryDate, estimatedAmount);
+            sendDataHandler.handleSendData(clientName, ingeniero, deliveryDate, estimatedAmount, title);
             clientNameField.clear();
             ingenieroField.clear();
             deliveryDateField.clear();
@@ -151,9 +158,12 @@ class ComercialWindow extends MainWindow {
 
 class IngenieroWindow extends MainWindow {
     private SendDataHandler sendDataHandler;
+    private String ingeniero;
 
-    public IngenieroWindow(SendDataHandler sendDataHandler) {
+    public IngenieroWindow(SendDataHandler sendDataHandler, String ingeniero) {
         this.sendDataHandler = sendDataHandler;
+        this.ingeniero = ingeniero; // Asigna el valor del ingeniero
+
     }
 
     @Override
@@ -170,28 +180,33 @@ class IngenieroWindow extends MainWindow {
         gridPane.add(requestsList, 0, 2, 1, 4);
 
         TextField clientNameField = new TextField();
+        TextField titleNameField = new TextField();
         TextField ingenieroField = new TextField();
         TextField deliveryDateField = new TextField();
         TextField estimatedAmountField = new TextField();
         Button sendDataButton = UIUtils.createStyledButton("Enviar Datos");
 
         gridPane.add(new Label("Nuevo proyecto"), 1, 1);
-        gridPane.add(new Label("Cliente final:"), 1, 2);
-        gridPane.add(clientNameField, 2, 2);
-        gridPane.add(new Label("Ingeniero:"), 1, 3);
-        gridPane.add(ingenieroField, 2, 3);
-        gridPane.add(new Label("Fecha de entrega:"), 1, 4);
-        gridPane.add(deliveryDateField, 2, 4);
-        gridPane.add(new Label("Importe estimado:"), 1, 5);
-        gridPane.add(estimatedAmountField, 2, 5);
-        gridPane.add(sendDataButton, 2, 6);
+        gridPane.add(new Label("Nombre:"), 1, 2);
+        gridPane.add(titleNameField, 2, 2);
+        gridPane.add(new Label("Cliente final:"), 1, 3);
+        gridPane.add(clientNameField, 2, 3);
+        gridPane.add(new Label("Ingeniero:"), 1, 4);
+        gridPane.add(ingenieroField, 2, 4);
+        gridPane.add(new Label("Fecha de entrega:"), 1, 5);
+        gridPane.add(deliveryDateField, 2, 5);
+        gridPane.add(new Label("Importe estimado:"), 1, 6);
+        gridPane.add(estimatedAmountField, 2, 6);
+        gridPane.add(sendDataButton, 2, 7);
 
         sendDataButton.setOnAction(e -> {
             String clientName = clientNameField.getText();
             String ingeniero = ingenieroField.getText();
             String deliveryDate = deliveryDateField.getText();
             String estimatedAmount = estimatedAmountField.getText();
-            sendDataHandler.handleSendData(clientName, ingeniero, deliveryDate, estimatedAmount);
+            String nombre = titleNameField.getText();
+
+            sendDataHandler.handleSendData(clientName, ingeniero, deliveryDate, estimatedAmount, clientName);
             clientNameField.clear();
             ingenieroField.clear();
             deliveryDateField.clear();
@@ -208,6 +223,9 @@ class IngenieroWindow extends MainWindow {
     }
 
     private void openEditRequestWindow(String selectedRequest) {
+
+        String id = getId(selectedRequest);
+
         Stage editRequestStage = new Stage();
         editRequestStage.initModality(Modality.APPLICATION_MODAL);
         editRequestStage.setTitle("Editar Petición");
@@ -217,38 +235,152 @@ class IngenieroWindow extends MainWindow {
         editRequestPane.setVgap(10);
 
         TextField editClientNameField = new TextField();
+        TextField editTitleField = new TextField();
         TextField editIngenieroField = new TextField();
         TextField editDeliveryDateField = new TextField();
         TextField editEstimatedAmountField = new TextField();
         Button saveButton = UIUtils.createStyledButton("Guardar Cambios");
 
-        editRequestPane.add(new Label("Cliente final:"), 0, 1);
-        editRequestPane.add(editClientNameField, 1, 1);
-        editRequestPane.add(new Label("Ingeniero:"), 0, 2);
-        editRequestPane.add(editIngenieroField, 1, 2);
-        editRequestPane.add(new Label("Fecha de entrega:"), 0, 3);
-        editRequestPane.add(editDeliveryDateField, 1, 3);
-        editRequestPane.add(new Label("Importe final:"), 0, 4);
-        editRequestPane.add(editEstimatedAmountField, 1, 4);
+        editRequestPane.add(new Label("Nombre del proyecto:"), 0, 1);
+        editRequestPane.add(editTitleField, 1, 1);
+        editRequestPane.add(new Label("Cliente final:"), 0, 2);
+        editRequestPane.add(editClientNameField, 1, 2);
+        editRequestPane.add(new Label("Ingeniero:"), 0, 3);
+        editRequestPane.add(editIngenieroField, 1, 3);
+        editRequestPane.add(new Label("Fecha de entrega:"), 0, 4);
+        editRequestPane.add(editDeliveryDateField, 1, 4);
+        editRequestPane.add(new Label("Importe final:"), 0, 5);
+        editRequestPane.add(editEstimatedAmountField, 1, 5);
 
-        editRequestPane.add(saveButton, 1, 5);
+        editRequestPane.add(saveButton, 1, 6);
 
         saveButton.setOnAction(e -> {
-
+            updateData(editClientNameField.getText(), editIngenieroField.getText(), editDeliveryDateField.getText(),
+                    editEstimatedAmountField.getText(), editTitleField.getText());
             editRequestStage.close();
         });
 
-        Scene editRequestScene = new Scene(editRequestPane, 300, 200);
+        Scene editRequestScene = new Scene(editRequestPane, 400, 300);
         editRequestStage.setScene(editRequestScene);
         editRequestStage.show();
     }
 
     private void loadRequestsFromBackend(ListView<String> requestsList) {
-        
-        requestsList.getItems().addAll("Salas de reuniones Telefónica - Entregado",
-                "Instalaciones Prosegur - Pendiente", "Hyflex Universidad Europea - Ganado");
+     
+        List<String> response = handlerGetProjects(ingeniero);
+
+        for (String elemento : response) {
+            requestsList.getItems().add(elemento);
+        }
     }
-    
+
+    public String getId(String selected) {
+
+        int end = selected.indexOf(':');
+
+        String id = selected.substring(0, end);
+
+        return id;
+
+    }
+
+    private void updateData(String client, String ingeniero, String date, String estimatedAmount, String title) {
+        String jsonInputString = "{\"cliente\": \"" + client + "\", \"ingeniero\": \"" + ingeniero
+                + "\",\"fechaEntrega\": \"" + date + "\",\"nombre\": \"" + title + "\",\"importe\": \""
+                + estimatedAmount + "\"}";
+        String responseString = "";
+        System.out.println(jsonInputString);
+
+        try {
+            URL url = new URL("http://localhost:3000/api/v1/updateProject");
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setDoOutput(true);
+
+            try (OutputStream os = connection.getOutputStream()) {
+                byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
+                System.err.println(input);
+                os.write(input, 0, input.length);
+            }
+
+            try (BufferedReader br = new BufferedReader(
+                    new InputStreamReader(connection.getInputStream(), "utf-8"))) {
+                StringBuilder response = new StringBuilder();
+                String responseLine;
+                while ((responseLine = br.readLine()) != null) {
+                    response.append(responseLine.trim());
+                }
+                System.out.println("Respuesta del servidor: " + response.toString());
+                responseString = response.toString();
+
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+
+        }
+        JSONObject jsonResponse = new JSONObject(responseString.toString());
+        String status = jsonResponse.getString("status");
+        if (status.equals("OK")) {
+            // showAlert("Datos enviados", "Datos enviados correctamente.");
+
+        } else {
+            // showAlert("Error al enviar", "Compruebe su conexión a internet y vuelva a
+            // intentarlo");
+
+        }
+
+    }
+
+    public List<String> handlerGetProjects(String ingeniero) {
+        List<String> projects = new ArrayList<>();
+
+        try {
+            URL url = new URL("http://localhost:3000/api/v1/getProjects");
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setDoOutput(true);
+
+            String jsonInputString = "{\"ingeniero\": \"" + ingeniero + "\"}";
+            try (OutputStream os = connection.getOutputStream()) {
+                byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
+                System.err.println(input);
+                os.write(input, 0, input.length);
+            }
+
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"))) {
+                StringBuilder response = new StringBuilder();
+                String responseLine;
+                while ((responseLine = br.readLine()) != null) {
+                    response.append(responseLine.trim());
+                }
+                System.out.println("Proyectos asociados: " + response.toString());
+                JSONObject jsonObject = new JSONObject(response.toString());
+
+                // Imprimir los 12 primeros proyectos
+                for (int i = 1; i < 12; i++) {
+                    try {
+                        JSONObject value = new JSONObject();
+                        value = jsonObject.getJSONObject(String.valueOf(i));
+                        var id = value.getInt("id");
+                        projects.add(String.valueOf(id) + " : " + value.getString("nombre") + " - "
+                                + value.getString("cliente"));
+
+                    } catch (Exception e) {
+                    }
+                }
+                return projects;
+
+            }
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+        }
+        return projects;
+    }
+
 }
 
 public class App extends Application {
@@ -256,8 +388,6 @@ public class App extends Application {
     private String userRole = "";
     private Stage primaryStage;
     public String projectsData;
-
-
 
     public static void main(String[] args) {
         launch(args);
@@ -293,7 +423,6 @@ public class App extends Application {
 
             } else if ("ingeniero".equals(userRole)) {
                 openIngenieroWindow(username);
-                handlerGetProjects(username);
 
             }
             primaryStage.close();
@@ -342,7 +471,7 @@ public class App extends Application {
     }
 
     private void openIngenieroWindow(String username) {
-        IngenieroWindow ingenieroWindow = new IngenieroWindow(this::handleSendData);
+        IngenieroWindow ingenieroWindow = new IngenieroWindow(this::handleSendData, username);
         openWindow(userRole, "Bienvenido " + username, ingenieroWindow, username);
     }
 
@@ -370,11 +499,13 @@ public class App extends Application {
         primaryStage.show();
     }
 
-    private void handleSendData(String client, String ingeniero, String date, String estimatedAmount) {
+    private void handleSendData(String client, String ingeniero, String date, String estimatedAmount, String title) {
         String jsonInputString = "{\"cliente\": \"" + client + "\", \"ingeniero\": \"" + ingeniero
-                + "\",\"fechaEntrega\": \"" + date + "\",\"importe\": \"" + estimatedAmount + "\"}";
+                + "\",\"fechaEntrega\": \"" + date + "\",\"nombre\": \"" + title + "\",\"importe\": \""
+                + estimatedAmount + "\"}";
         String responseString = "";
-        
+        System.err.println(jsonInputString);
+
         if (isLoggedIn) {
             try {
                 URL url = new URL("http://localhost:3000/api/v1/addProject");
@@ -417,41 +548,6 @@ public class App extends Application {
         } else {
             showAlert("Acceso denegado", "Debes iniciar sesión antes de enviar datos.");
         }
-    }
-
-    public String handlerGetProjects(String ingeniero) {
-        String responseString = "";
-        try {
-            URL url = new URL("http://localhost:3000/api/v1/getProjects");
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", "application/json");
-            connection.setDoOutput(true);
-
-            String jsonInputString = "{\"ingeniero\": \"" + ingeniero + "\"}";
-            try (OutputStream os = connection.getOutputStream()) {
-                byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
-                System.err.println(input);
-                os.write(input, 0, input.length);
-            }
-
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"))) {
-                StringBuilder response = new StringBuilder();
-                String responseLine;
-                while ((responseLine = br.readLine()) != null) {
-                    response.append(responseLine.trim());
-                }
-                System.out.println("Respuesta del servidor: " + response.toString());
-                return response.toString();
-                
-
-            }
-        } catch (Exception e) {
-
-            e.printStackTrace();
-
-        }
-        return ("{}");
     }
 
     private void showAlert(String title, String content) {
