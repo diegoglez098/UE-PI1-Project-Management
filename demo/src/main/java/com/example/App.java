@@ -134,7 +134,7 @@ class ComercialWindow extends MainWindow {
         ListView<String> projectsList = new ListView<>();
         loadProjectsFromBackend(projectsList);
 
-        gridPane.add(new Label("Proyectos Solicitados:"), 0, 1);
+        gridPane.add(new Label("Proyectos:"), 0, 1);
         gridPane.add(projectsList, 0, 2, 2, 4);
 
         TextField clientNameField = new TextField();
@@ -361,7 +361,7 @@ class IngenieroWindow extends MainWindow {
         editDeliveryDateField.setPromptText("Seleccionar Fecha de Entrega");
         TextField editEstimatedAmountField = new TextField();
         ComboBox<String> estadoProyectoComboBox = new ComboBox<>();
-        estadoProyectoComboBox.getItems().addAll("Pentiente", "Entregado", "Desestimado");
+        estadoProyectoComboBox.getItems().addAll("Pendiente", "Entregado", "Desestimado");
         estadoProyectoComboBox.setPromptText("Seleccionar Estado");
 
         Button saveButton = UIUtils.createStyledButton("Guardar Cambios");
