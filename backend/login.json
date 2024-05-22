@@ -1,0 +1,14 @@
+{
+    "diego":{
+        "password":"admin",
+        "rol":"ingeniero"
+    },
+    "javier":{
+        "password":"admin",
+        "rol":"comercial"
+    },
+    "david":{
+        "password":"admin",
+        "rol":"ingeniero"
+    }
+}
