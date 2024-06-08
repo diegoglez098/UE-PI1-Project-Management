@@ -84,17 +84,14 @@ app.post("/api/v1/login", (req, res) => {
   getLogin(req.body.username);
 
   console.log(req.body);
-  if (loginData) {
-    if (loginData.password == req.body.password) {
-      console.log("Login OK");
-      res.json({ status: "OK", rol: loginData.rol });
-    } else {
-      res.json({ status: "ERROR" });
-    }
+  if (loginData && loginData.password == req.body.password) {
+    console.log("Login OK");
+    res.json({ status: "OK", rol: loginData.rol });
   } else {
     res.json({ status: "ERROR" });
   }
 });
+
 app.post("/api/v1/addProject", async (req, res) => {
   console.log(req.body);
   req.body.estado = "Pendiente";
@@ -180,15 +177,15 @@ app.post("/api/v1/getProjectsComercial", (req, res) => {
     // Parsear el contenido JSON a un array de objetos
     const localData = JSON.parse(data);
     for (var i = 0; i < localData.length; i++) {
-      if (localData[i].comercial === req.body.comercial) {
-        if (
-          localData[i].estado == "Entregado" ||
-          localData[i].estado == "Desestimado"
-        ) {
-          projectsToCom[i + 1] = localData[i];
-        }
+      if (
+        localData[i].comercial === req.body.comercial &&
+        (localData[i].estado == "Entregado" ||
+          localData[i].estado == "Desestimado")
+      ) {
+        projectsToCom[i + 1] = localData[i];
       }
     }
+
     console.log("Sent comercial requests asociated to " + req.body.comercial);
     res.json(projectsToCom);
   });
@@ -197,7 +194,7 @@ app.post("/api/v1/getProjectsComercial", (req, res) => {
 app.post("/api/v1/updateProject", async (req, res) => {
   datos = req.body;
   var originalProject = {};
-    var nombre = datos.nombre;
+  var nombre = datos.nombre;
   var cliente = datos.cliente;
   var importe = datos.importe;
   var estado = datos.estado;
