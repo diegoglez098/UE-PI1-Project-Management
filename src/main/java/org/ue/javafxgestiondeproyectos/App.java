@@ -210,7 +210,7 @@ class ComercialWindow extends org.ue.javafxgestiondeproyectos.MainWindow {
     public String handlerGetProjects(String comercial) {
 
         try {
-            URL url = new URL("http://localhost:3000/api/v1/getProjectsComercial");
+            URL url = new URL("https://ue-pi1-project-management.onrender.com/api/v1/getProjectsComercial");
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/json");
@@ -425,7 +425,7 @@ class IngenieroWindow extends org.ue.javafxgestiondeproyectos.MainWindow {
         String responseString = "";
 
         try {
-            URL url = new URL("http://localhost:3000/api/v1/updateProject");
+            URL url = new URL("https://ue-pi1-project-management.onrender.com/api/v1/updateProject");
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/json");
@@ -468,7 +468,7 @@ class IngenieroWindow extends org.ue.javafxgestiondeproyectos.MainWindow {
         List<String> projects = new ArrayList<>();
 
         try {
-            URL url = new URL("http://localhost:3000/api/v1/getProjects");
+            URL url = new URL("https://ue-pi1-project-management.onrender.com/api/v1/getProjects");
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/json");
@@ -567,7 +567,7 @@ public class App extends Application {
     private JSONObject sendPostToBackend(String username, String password) {
         String responseString = "";
         try {
-            URL url = new URL("http://localhost:3000/api/v1/login");
+            URL url = new URL("https://ue-pi1-project-management.onrender.com/api/v1/login");
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/json");
@@ -646,7 +646,7 @@ public class App extends Application {
 
         if (isLoggedIn) {
             try {
-                URL url = new URL("http://localhost:3000/api/v1/addProject");
+                URL url = new URL("https://ue-pi1-project-management.onrender.com/api/v1/addProject");
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("POST");
                 connection.setRequestProperty("Content-Type", "application/json");
