@@ -2,7 +2,7 @@
 
 ## Descripción
 
-Este proyecto es una aplicación de gestión de proyectos desarrollada para el curso UE-PI1. La aplicación permite a los usuarios crear, gestionar y monitorear proyectos, asignar tareas y colaborar en un entorno de equipo. 
+Este proyecto es una aplicación de gestión de proyectos desarrollada para la asignatura Proyecto de Informática II. La aplicación permite a los usuarios crear, gestionar y monitorear proyectos, asignar tareas y colaborar en un entorno de equipo. 
 
 ## Características
 
@@ -25,4 +25,19 @@ Este proyecto es una aplicación de gestión de proyectos desarrollada para el c
   - Maven
 
 ## Estructura del Proyecto
+UE-PI1-Project-Management/
+│
+├── backend/ # Código fuente del backend
+│ ├── src/
+│ └── pom.xml # Archivo de configuración de Maven
+├── frontend/ # Código fuente del frontend
+│ ├── public/
+│ ├── src/
+│ └── package.json # Archivo de configuración de NPM
+├── .vscode/ # Configuración de Visual Studio Code
+├── .idea/ # Configuración de IntelliJ IDEA
+├── .gradle/ # Configuración de Gradle
+├── mvnw # Script de Maven Wrapper para Linux/Mac
+├── mvnw.cmd # Script de Maven Wrapper para Windows
+└── README.md # Documentación del proyecto
 
