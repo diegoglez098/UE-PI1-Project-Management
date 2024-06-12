@@ -19,13 +19,25 @@ const clave = Buffer.from(
 );
 const iv = Buffer.from("cacf125174a7243db083fc6a319efe57", "hex");
 
-var con = mysql.createConnection({
+var con = mysql.createPool({
   host: "monorail.proxy.rlwy.net",
   user: "root",
   password: "AXtEqMtrwnrWecrrqYNavtCkflIFGwuD",
   database: "railway",
   port: 47256,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
+
+const query = (sql, values) => {
+  return new Promise((resolve, reject) => {
+    conn.query(sql, values, (error, results) => {
+      if (error) return reject(error);
+      resolve(results);
+    });
+  });
+};
 
 function readProject() {
   fs.readFile(projects, "utf8", (err, data) => {
