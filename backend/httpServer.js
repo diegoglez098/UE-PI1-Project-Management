@@ -19,7 +19,7 @@ const clave = Buffer.from(
 );
 const iv = Buffer.from("cacf125174a7243db083fc6a319efe57", "hex");
 
-var con = mysql.createPool({
+var conn = mysql.createPool({
   host: "monorail.proxy.rlwy.net",
   user: "root",
   password: "AXtEqMtrwnrWecrrqYNavtCkflIFGwuD",
@@ -114,77 +114,29 @@ app.post("/api/v1/login", async (req, res) => {
 });
 
 app.post("/api/v1/addProject", async (req, res) => {
-  console.log(req.body);
-  req.body.estado = "Pendiente";
-
-  var ingenieroId;
-  var comercialId;
-  var projectId;
-  await con.connect(function (err) {
-    console.log("Connected!");
-    var sql = "SELECT * FROM PROJECT";
-    con.query(sql, function (err, result) {
-      console.log(result);
-      projectId = result.length + 1;
-    });
-  });
-
-  await con.connect(function (err) {
-    if (err) throw err;
-    var today = new Date();
-    var dd = String(today.getDate()).padStart(2, "0");
-    var mm = String(today.getMonth() + 1).padStart(2, "0"); //January is 0!
-    var yyyy = today.getFullYear();
-
-    today = yyyy + "-" + mm + "-" + dd;
-
-    console.log("Connected!");
-    var sql =
-      "INSERT INTO PROJECT (proyId, proyName, proyAssignEng,proyAssignCom, proyRegDate,proyModDate,proyClient,proyAmount,proyStatus, proyAttach) VALUES ?";
-
-    var values = [
-      [
-        projectId,
-        req.body.nombre,
-        req.body.ingeniero,
-        req.body.comercial,
-        today,
-        today,
-        req.body.cliente,
-        req.body.importe,
-        req.body.estado,
-        req.body.adjunto,
-      ],
-    ];
-    con.query(sql, [values], function (err, result) {
-      if (err) throw err;
-      console.log("Number of records inserted: " + result.affectedRows);
-      res.json({ status: "OK" });
-    });
-  });
-  fs.readFile(projects, "utf8", (err, data) => {
-    if (err) {
-      console.error("Error al leer el archivo:", err);
-
-      return;
-    }
-
-    // Parsear el contenido JSON a un array de objetos
-    const localData = JSON.parse(data);
-    req.body.id = localData.length;
-  });
+  try {
+    const { nombre, ingeniero, comercial, cliente, importe, adjunto } = req.body;
+    const today = new Date().toISOString().split('T')[0];
+    const result = await query("SELECT COUNT(*) AS count FROM PROJECT");
+    const projectId = result[0].count + 1;
+    const values = [projectId, nombre, ingeniero, comercial, today, today, cliente, importe, "Pendiente", adjunto];
+    await query("INSERT INTO PROJECT (proyId, proyName, proyAssignEng, proyAssignCom, proyRegDate, proyModDate, proyClient, proyAmount, proyStatus, proyAttach) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", values);
+    res.json({ status: "OK" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ status: "ERROR" });
+  }
 });
 // Endpoint de prueba con método POST
-app.post("/api/v1/getProjects", (req, res) => {
-  var projectsToIng = {};
-
-  con.connect(function (err) {
-    var sql = "SELECT * FROM PROJECT WHERE proyAssignEng = ?";
-    con.query(sql, [req.body.ingeniero], function (err, result) {
-      console.log(result);
-      res.json({ status: "OK", projects: result });
-    });
-  });
+app.post("/api/v1/getProjects", async (req, res) => {
+  try {
+    const { ingeniero } = req.body;
+    const results = await query("SELECT * FROM PROJECT WHERE proyAssignEng = ?", [ingeniero]);
+    res.json({ status: "OK", projects: results });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ status: "ERROR" });
+  }
 });
 app.post("/api/v1/getProjectsComercial", (req, res) => {
   var projectsToCom = {};
