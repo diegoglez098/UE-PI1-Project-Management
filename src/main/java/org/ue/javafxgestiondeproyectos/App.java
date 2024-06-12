@@ -631,8 +631,8 @@ public class App extends Application {
 
     private void handleLogout(Stage window) {
         isLoggedIn = false;
-        window.close();
         userRole = "";
+        window.close();
         primaryStage.show();
     }
 
@@ -644,7 +644,7 @@ public class App extends Application {
                 + estimatedAmount + "\"}";
         String responseString = "";
 
-        if (isLoggedIn) {
+        if (isLoggedIn) {      
             try {
                 URL url = new URL("https://ue-pi1-project-management.onrender.com/api/v1/addProject");
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();

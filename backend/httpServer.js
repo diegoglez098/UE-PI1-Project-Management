@@ -87,6 +87,7 @@ app.post("/api/v1/login", (req, res) => {
   if (loginData && loginData.password == req.body.password) {
     console.log("Login OK");
     res.json({ status: "OK", rol: loginData.rol });
+    loginData={};
   } else {
     res.json({ status: "ERROR" });
   }
