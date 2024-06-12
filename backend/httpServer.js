@@ -81,15 +81,23 @@ function getLogin(username) {
 }
 
 app.post("/api/v1/login", async (req, res) => {
-  await getLogin(req.body.username);
-
-  console.log(req.body);
-  if (loginData && loginData.password == req.body.password) {
-    console.log("Login OK");
-    res.json({ status: "OK", rol: loginData.rol });
-    loginData={};
-  } else {
-    res.json({ status: "ERROR" });
+  try {
+    const { username, password } = req.body;
+    const results = await query("SELECT * FROM USERS WHERE userName = ?", [username]);
+    if (results.length > 0) {
+      const user = results[0];
+      const decryptedPassword = descifrarAES(user.userPasswd, clave, iv);
+      if (decryptedPassword === password) {
+        res.json({ status: "OK", rol: user.userRole });
+      } else {
+        res.json({ status: "ERROR" });
+      }
+    } else {
+      res.json({ status: "ERROR" });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ status: "ERROR" });
   }
 });
 
