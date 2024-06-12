@@ -80,8 +80,8 @@ function getLogin(username) {
   });
 }
 
-app.post("/api/v1/login", (req, res) => {
-  getLogin(req.body.username);
+app.post("/api/v1/login", async (req, res) => {
+  await getLogin(req.body.username);
 
   console.log(req.body);
   if (loginData && loginData.password == req.body.password) {

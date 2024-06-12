@@ -552,6 +552,9 @@ public class App extends Application {
             isLoggedIn = true;
             userRole = responseJson.getString("rol");
 
+            // Agregar logs para ver el rol recibido
+            System.out.println("Rol recibido del servidor: " + userRole);
+
             if ("comercial".equals(userRole)) {
                 openComercialWindow(username);
 
@@ -559,13 +562,14 @@ public class App extends Application {
                 openIngenieroWindow(username);
 
             }
-            primaryStage.close();
-
+            else {
+                showAlert("Error", "Rol no válido");
+            }
         }
     }
 
     private JSONObject sendPostToBackend(String username, String password) {
-        String responseString = "";
+        String responseString;
         try {
             URL url = new URL("https://ue-pi1-project-management.onrender.com/api/v1/login");
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -578,24 +582,24 @@ public class App extends Application {
                 byte[] input = jsonInputString.getBytes(StandardCharsets.UTF_8);
                 os.write(input, 0, input.length);
             }
-
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"))) {
-                StringBuilder response = new StringBuilder();
-                String responseLine;
-                while ((responseLine = br.readLine()) != null) {
-                    response.append(responseLine.trim());
-                }
-                System.out.println("Respuesta del servidor: " + response.toString());
-                responseString = response.toString();
-
+        finally {
+                    BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), "utf-8"));
+                    StringBuilder response = new StringBuilder();
+                    String responseLine;
+                    while ((responseLine = br.readLine()) != null) {
+                        response.append(responseLine.trim());
+                    }
+                    System.out.println("Respuesta del servidor: " + response.toString());
+                    responseString = response.toString();
+                    JSONObject jsonResponse = new JSONObject(responseString.toString());
+                    return jsonResponse;
             }
         } catch (Exception e) {
 
             e.printStackTrace();
 
         }
-        JSONObject jsonResponse = new JSONObject(responseString.toString());
-        return jsonResponse;
+       return (JSONObject) new JSONObject();
     }
 
     private void openComercialWindow(String username) {
@@ -632,6 +636,7 @@ public class App extends Application {
     private void handleLogout(Stage window) {
         isLoggedIn = false;
         userRole = "";
+
         window.close();
         primaryStage.show();
     }
