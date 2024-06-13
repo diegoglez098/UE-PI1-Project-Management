@@ -454,7 +454,7 @@ class IngenieroWindow extends org.ue.javafxgestiondeproyectos.MainWindow {
         JSONObject jsonResponse = new JSONObject(responseString.toString());
         String status = jsonResponse.getString("status");
         if (status.equals("OK")) {
-            // showAlert("Datos enviados", "Datos enviados correctamente.");
+            //showAlert("Datos enviados", "Datos enviados correctamente.");
 
         } else {
             // showAlert("Error al enviar", "Compruebe su conexión a internet y vuelva a
@@ -610,6 +610,7 @@ public class App extends Application {
     private void openIngenieroWindow(String username) {
         org.ue.javafxgestiondeproyectos.IngenieroWindow ingenieroWindow = new org.ue.javafxgestiondeproyectos.IngenieroWindow(this::handleSendData, username);
         openWindow(userRole, "Bienvenido " + username, ingenieroWindow, username);
+
     }
 
     private void openWindow(String rol, String title, org.ue.javafxgestiondeproyectos.MainWindow window, String name) {

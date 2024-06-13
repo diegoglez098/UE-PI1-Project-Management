@@ -30,6 +30,14 @@ var conn = mysql.createPool({
   queueLimit: 0
 });
 
+var con = mysql.createConnection({
+  host: "monorail.proxy.rlwy.net",
+    user: "root",
+    password: "AXtEqMtrwnrWecrrqYNavtCkflIFGwuD",
+    database: "railway",
+    port: 47256,
+    });
+
 const query = (sql, values) => {
   return new Promise((resolve, reject) => {
     conn.query(sql, values, (error, results) => {
